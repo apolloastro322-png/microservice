@@ -5,7 +5,8 @@ const productRoutes = require('./routes/productRoutes');
 const app = express()
 
 app.use(cors());
-app.use(express.json());
+// limit 10mb: image 2MB jadi string base64 sekitar 2.7MB, default express hanya 100kb
+app.use(express.json({ limit: '10mb' }));
 
 app.get('/health', (req, res) => {
     res.json({
