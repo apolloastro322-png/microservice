@@ -8,10 +8,15 @@
 namespace App\Services;
 
 use App\Exceptions\CartItemNotFoundException;
+use App\Exceptions\ProductNotFoundException;
 use App\Models\CartItem;
 
 class CartService
 {
+    public function __construct(private ProductService $productService)
+    {
+    }
+
     // Isi keranjang satu user beserta total jumlah barangnya.
     public function getCart(int $userId): array
     {
@@ -27,6 +32,10 @@ class CartService
     // Tambah item. Kalau produk yang sama sudah ada di keranjang user, jumlahnya ditambah.
     public function addItem(int $userId, int $productId, int $quantity): CartItem
     {
+        if (!$this->productService->getProduct($productId)) {
+            throw new ProductNotFoundException($productId);
+        }
+        
         $item = CartItem::firstOrNew(['user_id' => $userId, 'product_id' => $productId]);
         $item->quantity = ($item->exists ? $item->quantity : 0) + $quantity;
         $item->save();
