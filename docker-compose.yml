@@ -70,6 +70,24 @@ services:
       retries: 5
       timeout: 5s
 
+  order-db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=orderdb
+      - MYSQL_USER=appuser
+      - MYSQL_PASSWORD=apppassword
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - order-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--user=root", "--password=rootpassword"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
+
   review-service:
     build:
       context: ./review-service
@@ -108,4 +126,5 @@ services:
 volumes:
   product-db-data:
   cart-db-data:
+  order-db-data:
   review-db-data:
