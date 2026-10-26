@@ -45,6 +45,6 @@ return [
     ],
 
     // Batas waktu panggilan HTTP antar service, dalam detik.
-    'timeout' => env('ORDER_HTTP_TIMEOUT', 5),
+    'timeout' => (int) env('ORDER_HTTP_TIMEOUT', 5),
 
 ];
