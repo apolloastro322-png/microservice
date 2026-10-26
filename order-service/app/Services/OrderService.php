@@ -9,9 +9,12 @@ namespace App\Services;
 use App\Clients\CartClient;
 use App\Clients\ProductClient;
 use App\Exceptions\EmptyCartException;
+use App\Exceptions\OrderNotFoundException;
+use App\Exceptions\OrderNotPayableException;
 use App\Exceptions\ProductUnavailableException;
 use App\Exceptions\ServiceUnavailableException;
 use App\Models\Order;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -88,5 +91,38 @@ class OrderService
         }
 
         return $order->load('items');
+    }
+
+    // Satu pesanan beserta itemnya. Dipakai GET /orders/{id}.
+    public function find(int $id): Order
+    {
+        return Order::with('items')->find($id) ?? throw new OrderNotFoundException($id);
+    }
+
+    // Daftar pesanan satu user, terbaru di atas. id jadi pemecah saat created_at sama.
+    public function listByUser(int $userId, ?string $status = null): Collection
+    {
+        return Order::with('items')
+            ->where('user_id', $userId)
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
+    }
+
+    // Ubah PENDING → PAID. Update bersyarat supaya dua request bersamaan tidak sama-sama sukses.
+    public function pay(int $id): Order
+    {
+        $updated = Order::whereKey($id)->where('status', 'PENDING')->update(['status' => 'PAID']);
+
+        if ($updated === 0) {
+            $order = Order::find($id);
+            $order === null
+                ? throw new OrderNotFoundException($id)
+                : throw new OrderNotPayableException($order->status);
+        }
+
+        // Baca ulang supaya data yang dikembalikan sudah berstatus PAID.
+        return Order::with('items')->findOrFail($id);
     }
 }

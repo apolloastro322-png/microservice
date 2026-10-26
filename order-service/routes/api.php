@@ -12,3 +12,8 @@ Route::get('/health', fn () => response()->json([
 ]));
 
 Route::post('/orders', [OrderController::class, 'store']);
+
+// /orders/user/{userId} harus didahulukan sebelum /orders/{id}.
+Route::get('/orders/user/{userId}', [OrderController::class, 'index'])->whereNumber('userId');
+Route::get('/orders/{id}', [OrderController::class, 'show'])->whereNumber('id');
+Route::patch('/orders/{id}/pay', [OrderController::class, 'pay'])->whereNumber('id');
