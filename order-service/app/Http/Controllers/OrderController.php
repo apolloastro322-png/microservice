@@ -38,22 +38,17 @@ class OrderController extends Controller
                 'data' => $order,
             ], 201);
         } catch (EmptyCartException | ProductUnavailableException $e) {
-            // Error yang sudah kita duga dari bisnis checkout: balas 409.
+            // Penolakan bisnis: 409 dan cukup dicatat sebagai warning.
+            Log::warning('Checkout ditolak', [
+                'user_id' => $userId,
+                'reason' => $e->getMessage(),
+            ]);
+
             return response()->json(['message' => $e->getMessage()], 409);
         } catch (ServiceUnavailableException $e) {
-            Log::error('Gagal membuat pesanan: service lain tidak dapat dihubungi', [
-                'user_id' => $userId,
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json(['message' => $e->getMessage()], 503);
+            return $this->errorResponse($e, 'membuat pesanan', 503, ['user_id' => $userId]);
         } catch (Throwable $e) {
-            Log::error('Gagal membuat pesanan', [
-                'user_id' => $userId,
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json(['message' => 'Gagal membuat pesanan'], 500);
+            return $this->errorResponse($e, 'membuat pesanan', 500, ['user_id' => $userId]);
         }
     }
 
@@ -66,14 +61,10 @@ class OrderController extends Controller
                 'data' => $this->orderService->find($id),
             ], 200);
         } catch (OrderNotFoundException $e) {
+            // 404 adalah kondisi normal, tidak dicatat sebagai error/warning.
             return response()->json(['message' => $e->getMessage()], 404);
         } catch (Throwable $e) {
-            Log::error('Gagal mengambil pesanan', [
-                'id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json(['message' => 'Gagal mengambil pesanan'], 500);
+            return $this->errorResponse($e, 'mengambil pesanan', 500, ['id' => $id]);
         }
     }
 
@@ -88,13 +79,10 @@ class OrderController extends Controller
                 'data' => $this->orderService->listByUser($userId, $status),
             ], 200);
         } catch (Throwable $e) {
-            Log::error('Gagal mengambil daftar pesanan', [
+            return $this->errorResponse($e, 'mengambil daftar pesanan', 500, [
                 'user_id' => $userId,
                 'status' => $status,
-                'error' => $e->getMessage(),
             ]);
-
-            return response()->json(['message' => 'Gagal mengambil daftar pesanan'], 500);
         }
     }
 
@@ -109,14 +97,35 @@ class OrderController extends Controller
         } catch (OrderNotFoundException $e) {
             return response()->json(['message' => $e->getMessage()], 404);
         } catch (OrderNotPayableException $e) {
-            return response()->json(['message' => $e->getMessage()], 409);
-        } catch (Throwable $e) {
-            Log::error('Gagal membayar pesanan', [
-                'id' => $id,
-                'error' => $e->getMessage(),
+            Log::warning('Pembayaran ditolak', [
+                'order_id' => $id,
+                'reason' => $e->getMessage(),
             ]);
 
-            return response()->json(['message' => 'Gagal membayar pesanan'], 500);
+            return response()->json(['message' => $e->getMessage()], 409);
+        } catch (Throwable $e) {
+            return $this->errorResponse($e, 'membayar pesanan', 500, ['order_id' => $id]);
         }
+    }
+
+    // Format error 500/503 yang seragam. Detail teknis hanya ikut saat APP_DEBUG=true.
+    private function errorResponse(Throwable $e, string $action, int $status, array $context = []): JsonResponse
+    {
+        Log::error("Gagal {$action}", array_merge($context, [
+            'error' => $e->getMessage(),
+            'exception' => $e::class,
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]));
+
+        // Pesan 503 berasal dari exception bisnis (service mana yang mati), jadi dipertahankan.
+        $body = ['message' => $status === 503 ? $e->getMessage() : "Gagal {$action}"];
+
+        if (config('app.debug') === true) {
+            $body['error'] = $e->getMessage();
+            $body['location'] = $e->getFile().':'.$e->getLine();
+        }
+
+        return response()->json($body, $status);
     }
 }
