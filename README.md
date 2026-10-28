@@ -561,7 +561,3 @@ microservice/
 ├── review-service/      # Flask + MongoDB, port 3002
 └── ecommerce-ui/        # React + Vite, tidak dijalankan oleh docker compose
 ```
-
-Folder `tugas/` hanya ada di mesin pengembang dan **tidak ikut ter-commit** karena masuk
-`.gitignore`. Clone baru tidak berisi folder itu; semua yang dibutuhkan untuk menjalankan
-sistem ada di `docker-compose.yml` dan folder service di atas.
