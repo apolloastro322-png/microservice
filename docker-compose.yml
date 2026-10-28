@@ -70,6 +70,37 @@ services:
       retries: 5
       timeout: 5s
 
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - APP_NAME=order-service
+      - APP_ENV=local
+      - APP_DEBUG=true
+      # Kunci demo lokal saja, bukan untuk produksi.
+      - APP_KEY=base64:EUj20G5tq3GHo0geQf7PKVhfIlJZISNvqr3ewpDsk5Y=
+      - APP_URL=http://localhost:3003
+      - LOG_CHANNEL=stderr
+      - DB_CONNECTION=mysql
+      - DB_HOST=order-db
+      - DB_PORT=3306
+      - DB_DATABASE=orderdb
+      - DB_USERNAME=appuser
+      - DB_PASSWORD=apppassword
+      - CART_SERVICE_URL=http://cart-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3000
+      - ORDER_HTTP_TIMEOUT=5
+    depends_on:
+      order-db:
+        condition: service_healthy
+      cart-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+
   order-db:
     image: mysql:8.0
     environment:
