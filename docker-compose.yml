@@ -27,7 +27,8 @@ services:
       - product-db-data:/var/lib/mysql
       - ./product-service/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--user=root", "--password=rootpassword"]
+      # 127.0.0.1 memaksa TCP; socket server sementara saat init bisa lulus padahal belum siap.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--user=root", "--password=rootpassword"]
       interval: 10s
       retries: 5
       start_period: 30s
@@ -113,7 +114,8 @@ services:
     volumes:
       - order-db-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--user=root", "--password=rootpassword"]
+      # 127.0.0.1 memaksa TCP; socket server sementara saat init bisa lulus padahal belum siap.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--user=root", "--password=rootpassword"]
       interval: 10s
       retries: 5
       start_period: 30s
