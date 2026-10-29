@@ -117,9 +117,11 @@ class OrderService
 
         if ($updated === 0) {
             $order = Order::find($id);
-            $order === null
-                ? throw new OrderNotFoundException($id)
-                : throw new OrderNotPayableException($order->status);
+            if ($order === null) {
+                throw new OrderNotFoundException($id);
+            }
+
+            throw new OrderNotPayableException($order->status);
         }
 
         // Baca ulang supaya data yang dikembalikan sudah berstatus PAID.
