@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { getCart } from "../api/cartApi";
-import { BagIcon, UserIcon } from "./Icons";
+import { UserIcon } from "./Icons";
 
 const USERS = [1, 2, 3, 4, 5];
 
@@ -76,6 +76,9 @@ export default function Navbar({ userId, onUserChange }) {
 
           <NavLink to="/" end className={linkClass}>
             Produk
+          </NavLink>
+          <NavLink to="/orders" className={linkClass}>
+            Pesanan
           </NavLink>
         </div>
         <nav className="flex items-center gap-1">

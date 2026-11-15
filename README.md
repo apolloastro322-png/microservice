@@ -461,6 +461,18 @@ memakai default `3000`.
 | `MONGO_DB_NAME` | `reviewdb` |
 | `PRODUCT_SERVICE_URL` | `http://product-service:3000` |
 
+### ecommerce-ui
+
+Nilai `VITE_*` ditanam saat image di-build, jadi mengubah `.env` berarti rebuild image
+`ecommerce-ui` (`docker compose up --build ecommerce-ui`).
+
+| Variabel | Nilai di `.env` |
+|---|---|
+| `VITE_PRODUCT_URL` | `http://localhost:3000` |
+| `VITE_CART_URL` | `http://localhost:3001` |
+| `VITE_REVIEW_URL` | `http://localhost:3002` |
+| `VITE_ORDER_URL` | `http://localhost:3003` |
+
 ### Database container dan port
 
 | Container | Image | Port container | Port host | Database / kredensial dev |
@@ -559,5 +571,5 @@ microservice/
 ├── product-service/     # Node.js/Express + MySQL, port 3000
 ├── cart-service/        # Laravel 13 + PostgreSQL, port 3001
 ├── review-service/      # Flask + MongoDB, port 3002
-└── ecommerce-ui/        # React + Vite, tidak dijalankan oleh docker compose
+└── ecommerce-ui/        # React + Vite, port 5173
 ```

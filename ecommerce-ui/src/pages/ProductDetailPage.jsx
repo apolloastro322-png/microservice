@@ -9,6 +9,7 @@ import AsyncView from "../components/AsyncView";
 import ProductImage from "../components/ProductImage";
 import QuantityStepper from "../components/QuantityStepper";
 import ReviewForm from "../components/ReviewForm";
+import ReviewItem from "../components/ReviewItem";
 import StarRating from "../components/StarRating";
 import { ProductDetailSkeleton } from "../components/Skeletons";
 import { useAsync } from "../hooks/useAsync";
@@ -160,35 +161,12 @@ export default function ProductDetailPage({ userId }) {
                 {data.reviews ? (
                   <ul className="mt-4 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card px-5">
                     {data.reviews.reviews.map((review) => (
-                      <li key={review.id} className="py-4">
-                        <small className="text-xs text-muted-foreground">
-                          User {review.user_id}
-                        </small>
-                        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
-                          <StarRating
-                            average={review.rating}
-                            total={1}
-                            compact
-                          />
-                          <small className="text-xs text-muted-foreground">
-                            {new Date(review.created_at).toLocaleDateString(
-                              "id-ID",
-                              {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                              },
-                            )}
-                          </small>
-                        </div>
-                        <p className="mt-2 text-sm leading-relaxed text-foreground">
-                          {review.comment || (
-                            <em className="text-muted-foreground">
-                              Tanpa komentar
-                            </em>
-                          )}
-                        </p>
-                      </li>
+                      <ReviewItem
+                        key={review.id}
+                        review={review}
+                        userId={userId}
+                        onChanged={reload}
+                      />
                     ))}
                     {data.reviews.reviews.length === 0 && (
                       <li className="py-6 text-center text-sm text-muted-foreground">

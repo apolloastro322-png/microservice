@@ -166,6 +166,7 @@ services:
       - product-service
       - cart-service
       - review-service
+      - order-service
 
 volumes:
   product-db-data:

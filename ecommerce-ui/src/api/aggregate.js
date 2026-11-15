@@ -1,4 +1,5 @@
 import { getCart } from "./cartApi";
+import { getOrder, getOrders } from "./orderApi";
 import { getProduct, getProducts } from "./productApi";
 import { getProductReviews } from "./reviewApi";
 
@@ -53,3 +54,39 @@ export async function getCartDetail(userId) {
 
   return { items, totalPrice };
 }
+
+// Thumbnail diambil dari product-service per produk unik. Produk yang sudah
+// dihapus atau service yang mati tidak boleh menggagalkan riwayat pesanan.
+async function productsById(ids) {
+  const unique = [...new Set(ids)];
+  const entries = await Promise.all(
+    unique.map(async (id) => {
+      try {
+        return [id, await getProduct(id)];
+      } catch {
+        return [id, null];
+      }
+    }),
+  );
+  return new Map(entries);
+}
+
+async function withProducts(orders) {
+  const products = await productsById(
+    orders.flatMap((order) => order.items.map((item) => item.product_id)),
+  );
+
+  return orders.map((order) => ({
+    ...order,
+    items: order.items.map((item) => ({
+      ...item,
+      product: products.get(item.product_id) ?? null,
+    })),
+  }));
+}
+
+export const getOrdersWithProducts = (userId, status) =>
+  getOrders(userId, status).then(withProducts);
+
+export const getOrderWithProducts = (id) =>
+  getOrder(id).then((order) => withProducts([order])).then(([order]) => order);

@@ -3,7 +3,8 @@ import { request } from "./http";
 const BASE_URL = import.meta.env.VITE_CART_URL;
 
 // Navbar memakai event ini untuk memperbarui jumlah item di keranjang.
-const notifyCartChanged = () => window.dispatchEvent(new Event("cart:changed"));
+export const notifyCartChanged = () =>
+  window.dispatchEvent(new Event("cart:changed"));
 
 export const getCart = (userId) =>
   request(BASE_URL, `/carts/${userId}`).then((res) => res.data);

@@ -3,6 +3,8 @@ import { Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import CartPage from "./pages/CartPage";
+import OrderDetailPage from "./pages/OrderDetailPage";
+import OrdersPage from "./pages/OrdersPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import ProductListPage from "./pages/ProductListPage";
 
@@ -26,6 +28,8 @@ export default function App() {
           />
 
           <Route path="/cart" element={<CartPage userId={userId} />} />
+          <Route path="/orders" element={<OrdersPage userId={userId} />} />
+          <Route path="/orders/:id" element={<OrderDetailPage />} />
 
           <Route
             path="*"

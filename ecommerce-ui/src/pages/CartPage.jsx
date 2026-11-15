@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCartDetail } from "../api/aggregate";
-import { clearCart, removeCartItem, updateCartItem } from "../api/cartApi";
+import {
+  clearCart,
+  notifyCartChanged,
+  removeCartItem,
+  updateCartItem,
+} from "../api/cartApi";
+import { checkout } from "../api/orderApi";
 import AsyncView from "../components/AsyncView";
 import { BagIcon } from "../components/Icons";
 import ProductImage from "../components/ProductImage";
@@ -24,6 +30,7 @@ import { useAsync } from "../hooks/useAsync";
 import { describeError, formatRupiah } from "../utils/format";
 
 export default function CartPage({ userId }) {
+  const navigate = useNavigate();
   const { loading, data, error, reload } = useAsync(
     () => getCartDetail(userId),
     [userId],
@@ -32,12 +39,12 @@ export default function CartPage({ userId }) {
   const [pending, setPending] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
 
-  async function run(action) {
+  async function run(action, { refresh = true } = {}) {
     setActionError(null);
     setPending(true);
     try {
       await action();
-      reload();
+      if (refresh) reload();
     } catch (err) {
       setActionError(err);
     } finally {
@@ -50,6 +57,7 @@ export default function CartPage({ userId }) {
       title: "Hapus item?",
       description: `${item.product?.name ?? "Produk ini"} akan dihapus dari keranjang.`,
       confirmLabel: "Hapus",
+      variant: "destructive",
       action: () => run(() => removeCartItem(item.id)),
     });
   }
@@ -59,7 +67,26 @@ export default function CartPage({ userId }) {
       title: "Kosongkan keranjang?",
       description: "Semua item di keranjang akan dihapus.",
       confirmLabel: "Kosongkan",
+      variant: "destructive",
       action: () => run(() => clearCart(userId)),
+    });
+  }
+
+  function checkoutNow() {
+    setConfirmAction({
+      title: "Buat pesanan?",
+      description:
+        "Pesanan dibuat dari isi keranjang saat ini, lalu keranjang dikosongkan.",
+      confirmLabel: "Buat pesanan",
+      action: () =>
+        run(
+          async () => {
+            await checkout(userId);
+            notifyCartChanged();
+            navigate("/orders");
+          },
+          { refresh: false },
+        ),
     });
   }
 
@@ -203,10 +230,18 @@ export default function CartPage({ userId }) {
                 </dl>
                 <Button
                   type="button"
+                  disabled={pending}
+                  onClick={checkoutNow}
+                  className="mt-5 w-full"
+                >
+                  Buat pesanan
+                </Button>
+                <Button
+                  type="button"
                   variant="outline"
                   disabled={pending}
                   onClick={clearAll}
-                  className="mt-5 w-full"
+                  className="mt-2 w-full"
                 >
                   Kosongkan keranjang
                 </Button>
@@ -232,7 +267,7 @@ export default function CartPage({ userId }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
-              variant="destructive"
+              variant={confirmAction?.variant}
               onClick={() => confirmAction?.action()}
             >
               {confirmAction?.confirmLabel}
