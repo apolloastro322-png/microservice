@@ -69,10 +69,7 @@ export default function Navbar({ userId, onUserChange }) {
             to="/"
             className="flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            <span className="swatch-cut-sm grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <BagIcon className="h-5 w-5" />
-            </span>
-            <span className="text-base font-semibold tracking-tight text-foreground">
+            <span className="text-base font-semibold tracking-tight text-primary">
               Toko Online
             </span>
           </NavLink>
